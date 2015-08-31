@@ -6,8 +6,8 @@ var gm = require('gm')
 var util = require('util');
 
 // constants
-var MAX_WIDTH  = 175;
-var MAX_HEIGHT = 150;
+var MAX_WIDTH  = 350;
+var MAX_HEIGHT = 300;
 
 // get reference to S3 client 
 var s3 = new AWS.S3();
@@ -36,7 +36,8 @@ exports.handler = function(event, context) {
 		return;
 	}
 	var fileType = typeMatch[1];
-	if (fileType != "jpg" && fileType != "png" && fileType != "jpeg" && fileType != "JPG" && fileType != "JPEG" && fileType != "PNG" && fileType != "pdf" && fileType != "PDF" && fileType != "txt" && fileType != "TXT") {
+	fileType = fileType.toLowerCase();
+	if (fileType != "jpg" && fileType != "png" && fileType != "jpeg" && fileType != "pdf") {
 		console.log('skipping Unsupported File format ' + srcKey);
 		return;
 	}
@@ -58,8 +59,14 @@ exports.handler = function(event, context) {
 					MAX_WIDTH / size.width,
 					MAX_HEIGHT / size.height
 				);
-				var width  = scalingFactor * size.width;
-				var height = scalingFactor * size.height;
+
+				if(fileType == "pdf") {
+					var width  = size.width;
+					var height = size.height;
+				} else {
+					var width  = scalingFactor * size.width;
+					var height = scalingFactor * size.height;
+				}
 
 				// Transform the image buffer in memory.
 				this.resize(width, height)
